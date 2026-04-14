@@ -1,0 +1,8 @@
+import { RabbitMQService } from '../../rabbitmq/rabbitmq.service';
+export declare class InstagramEventRouterService {
+    private readonly rabbitmq;
+    private readonly logger;
+    private readonly eventTypeToRoutingKey;
+    constructor(rabbitmq: RabbitMQService);
+    route(field: string, value: any, entryTime: number): void;
+}

@@ -111,6 +111,7 @@ export const ROUTING_KEYS = {
   // Scraping Service - Web scraping tasks
   SCRAPING_TASK: 'channels.scraping.task',
   SCRAPING_RESPONSE: 'channels.scraping.response',
+  SCRAPPING_NOTION_RESPONSE: 'channels.scrapping.notion-response',
 } as const;
 
 export const QUEUES = {
@@ -211,6 +212,7 @@ export const QUEUES = {
   // Scraping Service Queues
   SCRAPING_TASK: 'scraping.task',
   SCRAPING_RESPONSE: 'scraping.response',
+  SCRAPPING_NOTION_RESPONSE: 'scrapping.notion-response',
 } as const;
 
 // Tipo helper para inferir los valores del objeto
