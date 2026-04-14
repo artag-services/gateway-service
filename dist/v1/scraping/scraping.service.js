@@ -59,12 +59,18 @@ let ScrapingService = ScrapingService_1 = class ScrapingService {
         this.logger.log(`   - userId: ${dto.userId}`);
         this.logger.log(`   - title: ${dto.title}`);
         try {
+            const defaultParentPageId = this.configService.get('NOTION_PARENT_PAGE_ID');
+            const parentPageId = dto.notionPageId || defaultParentPageId;
+            this.logger.log(`   - Using parent_page_id: ${parentPageId}`);
+            if (!dto.notionPageId && defaultParentPageId) {
+                this.logger.log(`   - (from ENV fallback NOTION_PARENT_PAGE_ID)`);
+            }
             const notionMessage = {
                 messageId,
                 operation: 'create_page',
                 message: JSON.stringify(dto.data),
                 metadata: {
-                    parent_page_id: dto.notionPageId,
+                    parent_page_id: parentPageId,
                     title: dto.title,
                     icon: '🔗',
                     userId: dto.userId,

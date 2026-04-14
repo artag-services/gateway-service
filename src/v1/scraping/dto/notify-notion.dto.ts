@@ -43,11 +43,14 @@ export class NotifyNotionDto {
   @IsObject()
   data: Record<string, any>
 
-  /**
-   * Optional parent page ID in Notion
-   * If not provided, page will be created at database root
-   */
-  @IsOptional()
-  @IsString()
-  notionPageId?: string
+   /**
+    * Optional parent page ID in Notion
+    * If not provided, uses NOTION_PARENT_PAGE_ID from environment variables as fallback
+    * This ensures all pages are created under the configured parent page by default
+    * 
+    * Example: "336a9ff3e074807a9cc1cd3ef9aead2b"
+    */
+   @IsOptional()
+   @IsString()
+   notionPageId?: string
 }
