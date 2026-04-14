@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { RabbitMQService } from '../../rabbitmq/rabbitmq.service'
 import { ROUTING_KEYS } from '../../rabbitmq/constants/queues'
 import { CreateScrapingTaskDto, NotifyNotionDto } from './dto'
@@ -8,7 +9,10 @@ import { v4 as uuidv4 } from 'uuid'
 export class ScrapingService {
   private readonly logger = new Logger(ScrapingService.name);
 
-  constructor(private readonly rabbitmq: RabbitMQService) {}
+  constructor(
+    private readonly rabbitmq: RabbitMQService,
+    private readonly configService: ConfigService,
+  ) {}
 
    /**
     * Crea una tarea de scraping y la publica a RabbitMQ
