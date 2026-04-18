@@ -19,5 +19,5 @@ RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 3000
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["bash", "/app/entrypoint.sh"]
 CMD ["node", "dist/main"]
