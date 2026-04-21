@@ -7,31 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Pre-existing tables (never drop) ────────────────────────────────────────
-
-model days_off {
-  id            Int     @id @default(autoincrement())
-  email         String?
-  vacation_days Int?    @db.SmallInt
-  sick_days     Int?    @db.SmallInt
-}
-
-model inventory {
-  id           Int     @id @default(autoincrement())
-  product_name String?
-  size         String?
-  in_stock     Int?
-}
-
-model n8n_vectors {
-  id        String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  text      String?
-  metadata  Json?
-  embedding Unsupported("vector")?
-}
-
-// ─── Gateway ──────────────────────────────────────────────────────────────────
-
 model Message {
   id         String        @id @default(uuid())
   channel    String
@@ -47,61 +22,9 @@ model Message {
   @@index([createdAt])
 }
 
-// ─── WhatsApp ─────────────────────────────────────────────────────────────────
-
-model WaMessage {
-  id            String          @id @default(uuid())
-  messageId     String          @unique
-  recipient     String
-  body          String
-  mediaUrl      String?
-  status        WaMessageStatus @default(PENDING)
-  waMessageId   String?
-  errorReason   String?
-  templateUsed  Boolean         @default(false)
-  sentAt        DateTime?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-}
-
-// ─── Slack ────────────────────────────────────────────────────────────────────
-
-model SlackMessage {
-  id          String             @id @default(uuid())
-  messageId   String             @unique
-  recipient   String
-  body        String
-  mediaUrl    String?
-  status      SlackMessageStatus @default(PENDING)
-  slackMsgTs  String?
-  channel     String?
-  errorReason String?
-  sentAt      DateTime?
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-}
-
-// ─── Notion ───────────────────────────────────────────────────────────────────
-
-model NotionOperation {
-  id          String              @id @default(uuid())
-  messageId   String              @unique
-  operation   String
-  body        String
-  metadata    Json?
-  status      NotionOpStatus      @default(PENDING)
-  notionId    String?
-  errorReason String?
-  executedAt  DateTime?
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-}
-
-// ─── Instagram ────────────────────────────────────────────────────────────────
-
 model IgMessage {
-  id          String          @id @default(uuid())
-  messageId   String          @unique
+  id          String         @id @default(uuid())
+  messageId   String         @unique
   recipient   String
   body        String
   mediaUrl    String?
@@ -109,60 +32,13 @@ model IgMessage {
   igMessageId String?
   errorReason String?
   sentAt      DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([recipient])
+  @@index([status])
+  @@index([createdAt])
 }
-
-// ─── TikTok ───────────────────────────────────────────────────────────────────
-
-model TikTokPost {
-  id          String          @id @default(uuid())
-  messageId   String
-  recipient   String
-  caption     String
-  videoUrl    String
-  coverUrl    String?
-  status      TikTokPostStatus @default(PENDING)
-  publishId   String?
-  errorReason String?
-  sentAt      DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-}
-
-// ─── Facebook ─────────────────────────────────────────────────────────────────
-
-model FbMessage {
-  id          String          @id @default(uuid())
-  messageId   String          @unique
-  recipient   String
-  body        String
-  mediaUrl    String?
-  status      FbMessageStatus @default(PENDING)
-  fbMessageId String?
-  errorReason String?
-  sentAt      DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-}
-
-// ─── Email ────────────────────────────────────────────────────────────────────
-
-model EmailMessage {
-  id          String        @id @default(uuid())
-  messageId   String        @unique
-  recipient   String
-  subject     String
-  body        String
-  status      EmailStatus   @default(PENDING)
-  resendMsgId String?
-  errorReason String?
-  sentAt      DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-}
-
-// ─── Enums ────────────────────────────────────────────────────────────────────
 
 enum MessageStatus {
   PENDING
@@ -171,46 +47,65 @@ enum MessageStatus {
   PARTIAL
 }
 
-enum WaMessageStatus {
-  PENDING
-  SENT
-  FAILED
-  DELIVERED
-  READ
-}
-
-enum SlackMessageStatus {
-  PENDING
-  SENT
-  FAILED
-}
-
-enum NotionOpStatus {
-  PENDING
-  SUCCESS
-  FAILED
-}
-
 enum IgMessageStatus {
   PENDING
   SENT
   FAILED
 }
 
-enum TikTokPostStatus {
-  PENDING
-  SENT
-  FAILED
+// ===== CONVERSATION ROOMS SYSTEM =====
+
+model Conversation {
+  id              String   @id @default(uuid())
+  
+  // Channel & User identification
+  channel         String   // "whatsapp", "instagram", "slack", etc
+  channelUserId   String   // senderId from Meta (or equivalent)
+  userId          String?  // FK → Identity.User (NULL until resolved)
+  
+  // Topic & Classification
+  topic           String?  // "Billing", "Support", "Product", "Order", "General"
+  detectionMethod String   // "KEYWORDS", "AI", "MANUAL"
+  keywords        String[] // e.g., ["factura", "pago"] for detection
+  
+  // Control
+  aiEnabled       Boolean  @default(true)
+  agentAssigned   String?  // username or agent ID
+  status          ConvStatus @default(ACTIVE)
+  
+  // Metadata
+  messageCount    Int      @default(0)
+  aiCallCount     Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  lastMessageAt   DateTime?
+  archivedAt      DateTime?
+  
+  // Unique conversation per channel per user (status filtering done in queries)
+  @@unique([channelUserId, channel])
+  @@index([userId])
+  @@index([channel])
+  @@index([status])
+  @@index([lastMessageAt])
 }
 
-enum FbMessageStatus {
-  PENDING
-  SENT
-  FAILED
+model N8NRateLimit {
+  id              String   @id @default(uuid())
+  userId          String   // From Identity.User
+  service         String   // "whatsapp", "instagram", etc
+  date            DateTime @default(now()) // Daily bucket
+  callCount       Int      @default(0)
+  maxCalls        Int      @default(20)
+  
+  @@unique([userId, service, date])
+  @@index([userId])
+  @@index([date])
 }
 
-enum EmailStatus {
-  PENDING
-  SENT
-  FAILED
+enum ConvStatus {
+  ACTIVE
+  WAITING_AGENT
+  WITH_AGENT
+  ARCHIVED
+  CLOSED
 }

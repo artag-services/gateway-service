@@ -108,10 +108,17 @@ export const ROUTING_KEYS = {
     IDENTITY_UPDATE_AI_SETTINGS: 'channels.identity.update_ai_settings',
     IDENTITY_RESPONSE: 'identity.responses',
 
-  // Scraping Service - Web scraping tasks
-  SCRAPING_TASK: 'channels.scraping.task',
-  SCRAPING_RESPONSE: 'channels.scraping.response',
-  SCRAPPING_NOTION_RESPONSE: 'channels.scrapping.notion-response',
+   // Scraping Service - Web scraping tasks
+   SCRAPING_TASK: 'channels.scraping.task',
+   SCRAPING_RESPONSE: 'channels.scraping.response',
+   SCRAPPING_NOTION_RESPONSE: 'channels.scrapping.notion-response',
+
+  // Conversation Rooms System - NEW
+  CONVERSATION_INCOMING: 'channels.conversation.incoming',
+  CONVERSATION_CREATED: 'channels.conversation.created',
+  CONVERSATION_UPDATED: 'channels.conversation.updated',
+  CONVERSATION_AI_TOGGLE: 'channels.conversation.ai-toggle',
+  CONVERSATION_AGENT_ASSIGN: 'channels.conversation.agent-assign',
 } as const;
 
 export const QUEUES = {
@@ -209,10 +216,17 @@ export const QUEUES = {
      IDENTITY_UPDATE_AI_SETTINGS: 'identity.update_ai_settings',
      IDENTITY_RESPONSES: 'gateway.identity.responses',
 
-  // Scraping Service Queues
-  SCRAPING_TASK: 'scraping.task',
-  SCRAPING_RESPONSE: 'scraping.response',
-  SCRAPPING_NOTION_RESPONSE: 'scrapping.notion-response',
+   // Scraping Service Queues
+   SCRAPING_TASK: 'scraping.task',
+   SCRAPING_RESPONSE: 'scraping.response',
+   SCRAPPING_NOTION_RESPONSE: 'scrapping.notion-response',
+
+  // Conversation Rooms System Queues - NEW
+  CONVERSATION_INCOMING: 'conversation.incoming',
+  CONVERSATION_CREATED: 'conversation.created',
+  CONVERSATION_UPDATED: 'conversation.updated',
+  CONVERSATION_AI_TOGGLE: 'conversation.ai-toggle',
+  CONVERSATION_AGENT_ASSIGN: 'conversation.agent-assign',
 } as const;
 
 // Tipo helper para inferir los valores del objeto

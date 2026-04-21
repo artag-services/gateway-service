@@ -70,5 +70,49 @@ export class WhatsappEventRouterService {
     // Publicar a RabbitMQ
     this.rabbitmq.publish(routingKey, payload as unknown as Record<string, unknown>);
     this.logger.log(`Routed event [${eventType}] → [${routingKey}]`);
+
+    // NEW: For MESSAGE events, also publish conversation.incoming event
+    if (eventType === WhatsappEventType.MESSAGE) {
+      await this.publishConversationIncomingEvent(value, entryTime);
+    }
+  }
+
+  /**
+   * Publish conversation.incoming event when a user sends a message
+   * This triggers conversation creation in the WhatsApp service
+   */
+  private async publishConversationIncomingEvent(messageData: any, entryTime: number): Promise<void> {
+    try {
+      // Extract message content
+      const messages = messageData?.messages || [];
+      if (!messages || messages.length === 0) return;
+
+      const message = messages[0];
+      const contacts = messageData?.contacts || [];
+      const contact = contacts[0];
+
+      if (!message || !contact) return;
+
+      // Extract key fields
+      const senderId = message.from; // The user's phone number
+      const senderName = contact?.profile?.name || 'Unknown';
+      const messageId = message.id;
+      const messageText = message.text?.body || '[Non-text message]';
+
+      // Publish conversation.incoming event
+      const conversationPayload = {
+        channel: 'whatsapp',
+        channelUserId: senderId,
+        messageText,
+        messageId,
+        timestamp: new Date(entryTime * 1000).toISOString(),
+      };
+
+      this.rabbitmq.publish(ROUTING_KEYS.CONVERSATION_INCOMING, conversationPayload as unknown as Record<string, unknown>);
+      this.logger.log(`Published conversation.incoming event for user ${senderId}`);
+    } catch (error) {
+      this.logger.error('Failed to publish conversation.incoming event', error);
+      // Don't throw, just log - conversation creation is secondary
+    }
   }
 }
