@@ -12,12 +12,14 @@ var ScrapingService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ScrapingService = void 0;
 const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
 const rabbitmq_service_1 = require("../../rabbitmq/rabbitmq.service");
 const queues_1 = require("../../rabbitmq/constants/queues");
 const uuid_1 = require("uuid");
 let ScrapingService = ScrapingService_1 = class ScrapingService {
-    constructor(rabbitmq) {
+    constructor(rabbitmq, configService) {
         this.rabbitmq = rabbitmq;
+        this.configService = configService;
         this.logger = new common_1.Logger(ScrapingService_1.name);
     }
     async createScrapingTask(dto) {
@@ -97,6 +99,7 @@ let ScrapingService = ScrapingService_1 = class ScrapingService {
 exports.ScrapingService = ScrapingService;
 exports.ScrapingService = ScrapingService = ScrapingService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [rabbitmq_service_1.RabbitMQService])
+    __metadata("design:paramtypes", [rabbitmq_service_1.RabbitMQService,
+        config_1.ConfigService])
 ], ScrapingService);
 //# sourceMappingURL=scraping.service.js.map

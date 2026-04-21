@@ -72,6 +72,11 @@ export declare const ROUTING_KEYS: {
     readonly SCRAPING_TASK: "channels.scraping.task";
     readonly SCRAPING_RESPONSE: "channels.scraping.response";
     readonly SCRAPPING_NOTION_RESPONSE: "channels.scrapping.notion-response";
+    readonly CONVERSATION_INCOMING: "channels.conversation.incoming";
+    readonly CONVERSATION_CREATED: "channels.conversation.created";
+    readonly CONVERSATION_UPDATED: "channels.conversation.updated";
+    readonly CONVERSATION_AI_TOGGLE: "channels.conversation.ai-toggle";
+    readonly CONVERSATION_AGENT_ASSIGN: "channels.conversation.agent-assign";
 };
 export declare const QUEUES: {
     readonly WHATSAPP_SEND: "whatsapp.send";
@@ -141,5 +146,10 @@ export declare const QUEUES: {
     readonly SCRAPING_TASK: "scraping.task";
     readonly SCRAPING_RESPONSE: "scraping.response";
     readonly SCRAPPING_NOTION_RESPONSE: "scrapping.notion-response";
+    readonly CONVERSATION_INCOMING: "conversation.incoming";
+    readonly CONVERSATION_CREATED: "conversation.created";
+    readonly CONVERSATION_UPDATED: "conversation.updated";
+    readonly CONVERSATION_AI_TOGGLE: "conversation.ai-toggle";
+    readonly CONVERSATION_AGENT_ASSIGN: "conversation.agent-assign";
 };
 export type RoutingKey = (typeof ROUTING_KEYS)[keyof typeof ROUTING_KEYS];

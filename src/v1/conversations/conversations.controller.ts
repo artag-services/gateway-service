@@ -10,6 +10,7 @@ import {
   UseGuards,
   Logger,
 } from '@nestjs/common';
+import { ConvStatus } from '@prisma/client';
 import { ConversationsService } from './conversations.service';
 
 /**
@@ -105,7 +106,7 @@ export class ConversationsController {
     updates: {
       aiEnabled?: boolean;
       agentAssigned?: string;
-      status?: string;
+      status?: ConvStatus;
     },
   ) {
     this.logger.log(`Updating conversation: ${conversationId}`);

@@ -59,6 +59,37 @@ let WhatsappEventRouterService = WhatsappEventRouterService_1 = class WhatsappEv
         }
         this.rabbitmq.publish(routingKey, payload);
         this.logger.log(`Routed event [${eventType}] → [${routingKey}]`);
+        if (eventType === events_1.WhatsappEventType.MESSAGE) {
+            await this.publishConversationIncomingEvent(value, entryTime);
+        }
+    }
+    async publishConversationIncomingEvent(messageData, entryTime) {
+        try {
+            const messages = messageData?.messages || [];
+            if (!messages || messages.length === 0)
+                return;
+            const message = messages[0];
+            const contacts = messageData?.contacts || [];
+            const contact = contacts[0];
+            if (!message || !contact)
+                return;
+            const senderId = message.from;
+            const senderName = contact?.profile?.name || 'Unknown';
+            const messageId = message.id;
+            const messageText = message.text?.body || '[Non-text message]';
+            const conversationPayload = {
+                channel: 'whatsapp',
+                channelUserId: senderId,
+                messageText,
+                messageId,
+                timestamp: new Date(entryTime * 1000).toISOString(),
+            };
+            this.rabbitmq.publish(queues_1.ROUTING_KEYS.CONVERSATION_INCOMING, conversationPayload);
+            this.logger.log(`Published conversation.incoming event for user ${senderId}`);
+        }
+        catch (error) {
+            this.logger.error('Failed to publish conversation.incoming event', error);
+        }
     }
 };
 exports.WhatsappEventRouterService = WhatsappEventRouterService;

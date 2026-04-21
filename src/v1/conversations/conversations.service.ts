@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { RabbitMQService } from '../../rabbitmq/rabbitmq.service';
 import { ROUTING_KEYS } from '../../rabbitmq/constants/queues';
+import { ConvStatus } from '@prisma/client';
 
 interface ListOptions {
   channel?: string;
@@ -187,7 +188,7 @@ export class ConversationsService {
     updates: {
       aiEnabled?: boolean;
       agentAssigned?: string;
-      status?: string;
+      status?: ConvStatus;
     },
   ) {
     try {

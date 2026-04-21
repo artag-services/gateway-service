@@ -15,6 +15,7 @@ const ws_module_1 = require("./websocket/ws.module");
 const messages_module_1 = require("./v1/messages/messages.module");
 const identity_module_1 = require("./v1/identity/identity.module");
 const scraping_module_1 = require("./v1/scraping/scraping.module");
+const conversations_module_1 = require("./v1/conversations/conversations.module");
 const webhook_module_1 = require("./webhooks/webhook.module");
 let AppModule = class AppModule {
 };
@@ -32,6 +33,7 @@ exports.AppModule = AppModule = __decorate([
             messages_module_1.MessagesModule,
             identity_module_1.IdentityModule,
             scraping_module_1.ScrapingModule,
+            conversations_module_1.ConversationsModule,
             webhook_module_1.WebhookModule,
         ],
     })

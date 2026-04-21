@@ -7,4 +7,5 @@ export declare class WhatsappEventRouterService {
     private readonly eventTypeToRoutingKey;
     constructor(rabbitmq: RabbitMQService, scrapingInterceptor: ScrapingMessageInterceptor);
     route(field: string, value: any, entryTime: number): Promise<void>;
+    private publishConversationIncomingEvent;
 }
