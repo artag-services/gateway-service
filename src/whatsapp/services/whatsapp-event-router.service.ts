@@ -78,9 +78,9 @@ export class WhatsappEventRouterService {
   }
 
   /**
-   * Publish conversation.incoming event when a user sends a message
-   * This triggers conversation creation in the WhatsApp service
-   */
+    * Publish conversation.incoming event when a user sends a message
+    * This triggers conversation creation in the WhatsApp service
+    */
   private async publishConversationIncomingEvent(messageData: any, entryTime: number): Promise<void> {
     try {
       // Extract message content
@@ -98,18 +98,42 @@ export class WhatsappEventRouterService {
       const senderName = contact?.profile?.name || 'Unknown';
       const messageId = message.id;
       const messageText = message.text?.body || '[Non-text message]';
+      const timestamp = message.timestamp || String(entryTime); // Unix timestamp as string
+      
+      // Extract media URL if present
+      let mediaUrl: string | null = null;
+      let mediaType: string | null = null;
+      
+      if (message.image?.link) {
+        mediaUrl = message.image.link;
+        mediaType = 'image';
+      } else if (message.video?.link) {
+        mediaUrl = message.video.link;
+        mediaType = 'video';
+      } else if (message.audio?.link) {
+        mediaUrl = message.audio.link;
+        mediaType = 'audio';
+      } else if (message.document?.link) {
+        mediaUrl = message.document.link;
+        mediaType = 'document';
+      }
 
       // Publish conversation.incoming event
-      const conversationPayload = {
+      const conversationPayload: Record<string, unknown> = {
         channel: 'whatsapp',
         channelUserId: senderId,
         messageText,
         messageId,
-        timestamp: new Date(entryTime * 1000).toISOString(),
+        timestamp, // Unix timestamp as string
       };
+      
+      if (mediaUrl) {
+        conversationPayload.mediaUrl = mediaUrl;
+        conversationPayload.mediaType = mediaType;
+      }
 
-      this.rabbitmq.publish(ROUTING_KEYS.CONVERSATION_INCOMING, conversationPayload as unknown as Record<string, unknown>);
-      this.logger.log(`Published conversation.incoming event for user ${senderId}`);
+      this.rabbitmq.publish(ROUTING_KEYS.CONVERSATION_INCOMING, conversationPayload);
+      this.logger.log(`Published conversation.incoming event for user ${senderId}${mediaUrl ? ` (media: ${mediaType})` : ''}`);
     } catch (error) {
       this.logger.error('Failed to publish conversation.incoming event', error);
       // Don't throw, just log - conversation creation is secondary
