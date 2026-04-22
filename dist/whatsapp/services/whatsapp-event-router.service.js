@@ -77,15 +77,38 @@ let WhatsappEventRouterService = WhatsappEventRouterService_1 = class WhatsappEv
             const senderName = contact?.profile?.name || 'Unknown';
             const messageId = message.id;
             const messageText = message.text?.body || '[Non-text message]';
+            const timestamp = message.timestamp || String(entryTime);
+            let mediaUrl = null;
+            let mediaType = null;
+            if (message.image?.link) {
+                mediaUrl = message.image.link;
+                mediaType = 'image';
+            }
+            else if (message.video?.link) {
+                mediaUrl = message.video.link;
+                mediaType = 'video';
+            }
+            else if (message.audio?.link) {
+                mediaUrl = message.audio.link;
+                mediaType = 'audio';
+            }
+            else if (message.document?.link) {
+                mediaUrl = message.document.link;
+                mediaType = 'document';
+            }
             const conversationPayload = {
                 channel: 'whatsapp',
                 channelUserId: senderId,
                 messageText,
                 messageId,
-                timestamp: new Date(entryTime * 1000).toISOString(),
+                timestamp,
             };
+            if (mediaUrl) {
+                conversationPayload.mediaUrl = mediaUrl;
+                conversationPayload.mediaType = mediaType;
+            }
             this.rabbitmq.publish(queues_1.ROUTING_KEYS.CONVERSATION_INCOMING, conversationPayload);
-            this.logger.log(`Published conversation.incoming event for user ${senderId}`);
+            this.logger.log(`Published conversation.incoming event for user ${senderId}${mediaUrl ? ` (media: ${mediaType})` : ''}`);
         }
         catch (error) {
             this.logger.error('Failed to publish conversation.incoming event', error);
