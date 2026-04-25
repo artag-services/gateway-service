@@ -113,6 +113,19 @@ export const ROUTING_KEYS = {
    SCRAPING_RESPONSE: 'channels.scraping.response',
    SCRAPPING_NOTION_RESPONSE: 'channels.scrapping.notion-response',
 
+   // Scheduler Service - Scheduled tasks (all RPC over RabbitMQ — no direct HTTP)
+   SCHEDULER_CREATE: 'channels.scheduler.create',
+   SCHEDULER_UPDATE: 'channels.scheduler.update',
+   SCHEDULER_DELETE: 'channels.scheduler.delete',
+   SCHEDULER_PAUSE: 'channels.scheduler.pause',
+   SCHEDULER_RESUME: 'channels.scheduler.resume',
+   SCHEDULER_TRIGGER: 'channels.scheduler.trigger-now',
+   SCHEDULER_LIST: 'channels.scheduler.list',
+   SCHEDULER_GET: 'channels.scheduler.get',
+   SCHEDULER_RUNS: 'channels.scheduler.runs',
+   SCHEDULER_RESPONSE: 'channels.scheduler.response',
+   SCHEDULER_TASK_FIRED: 'channels.scheduler.task-fired',
+
   // Conversation Rooms System - NEW
   CONVERSATION_INCOMING: 'channels.conversation.incoming',
   CONVERSATION_CREATED: 'channels.conversation.created',
@@ -220,6 +233,18 @@ export const QUEUES = {
    SCRAPING_TASK: 'scraping.task',
    SCRAPING_RESPONSE: 'scraping.response',
    SCRAPPING_NOTION_RESPONSE: 'scrapping.notion-response',
+
+   // Scheduler Service Queues
+   SCHEDULER_CREATE: 'scheduler.create',
+   SCHEDULER_UPDATE: 'scheduler.update',
+   SCHEDULER_DELETE: 'scheduler.delete',
+   SCHEDULER_PAUSE: 'scheduler.pause',
+   SCHEDULER_RESUME: 'scheduler.resume',
+   SCHEDULER_TRIGGER: 'scheduler.trigger',
+   SCHEDULER_LIST: 'scheduler.list',
+   SCHEDULER_GET: 'scheduler.get',
+   SCHEDULER_RUNS: 'scheduler.runs',
+   SCHEDULER_RESPONSES: 'gateway.scheduler.responses',
 
   // Conversation Rooms System Queues - NEW
   CONVERSATION_INCOMING: 'conversation.incoming',
