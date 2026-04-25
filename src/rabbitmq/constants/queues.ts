@@ -113,6 +113,20 @@ export const ROUTING_KEYS = {
    SCRAPING_RESPONSE: 'channels.scraping.response',
    SCRAPPING_NOTION_RESPONSE: 'channels.scrapping.notion-response',
 
+   // Email Service - Transactional email (Resend / SMTP via adapter)
+   EMAIL_SEND: 'channels.email.send',
+   EMAIL_GET: 'channels.email.get',
+   EMAIL_LIST: 'channels.email.list',
+   EMAIL_RESPONSE: 'channels.email.response',
+   EMAIL_WEBHOOK_RESEND: 'channels.email.webhook.resend',
+   EMAIL_EVENT_SENT: 'channels.email.events.sent',
+   EMAIL_EVENT_DELIVERED: 'channels.email.events.delivered',
+   EMAIL_EVENT_BOUNCED: 'channels.email.events.bounced',
+   EMAIL_EVENT_COMPLAINED: 'channels.email.events.complained',
+   EMAIL_EVENT_OPENED: 'channels.email.events.opened',
+   EMAIL_EVENT_CLICKED: 'channels.email.events.clicked',
+   EMAIL_EVENT_FAILED: 'channels.email.events.failed',
+
    // Scheduler Service - Scheduled tasks (all RPC over RabbitMQ — no direct HTTP)
    SCHEDULER_CREATE: 'channels.scheduler.create',
    SCHEDULER_UPDATE: 'channels.scheduler.update',
@@ -233,6 +247,13 @@ export const QUEUES = {
    SCRAPING_TASK: 'scraping.task',
    SCRAPING_RESPONSE: 'scraping.response',
    SCRAPPING_NOTION_RESPONSE: 'scrapping.notion-response',
+
+   // Email Service Queues
+   EMAIL_SEND: 'email.send',
+   EMAIL_GET: 'email.get',
+   EMAIL_LIST: 'email.list',
+   EMAIL_WEBHOOK_RESEND: 'email.webhook.resend',
+   EMAIL_RESPONSES: 'gateway.email.responses',
 
    // Scheduler Service Queues
    SCHEDULER_CREATE: 'scheduler.create',

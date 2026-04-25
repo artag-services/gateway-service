@@ -8,6 +8,7 @@ import { IdentityModule } from './v1/identity/identity.module';
 import { ScrapingModule } from './v1/scraping/scraping.module';
 import { ConversationsModule } from './v1/conversations/conversations.module';
 import { SchedulerModule } from './v1/scheduler/scheduler.module';
+import { EmailModule } from './v1/email/email.module';
 import { WebhookModule } from './webhooks/webhook.module';
 // import { AuthModule } from './auth/auth.module'; // TODO: activar cuando implementemos auth
 
@@ -29,6 +30,7 @@ import { WebhookModule } from './webhooks/webhook.module';
     ScrapingModule,
     ConversationsModule,
     SchedulerModule,
+    EmailModule,
     WebhookModule,
 
     // TODO: AuthModule - descomentar cuando activemos autenticación
