@@ -1,69 +1,74 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Logger, BadRequestException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common'
 import { ScrapingService } from './scraping.service'
-import { CreateScrapingTaskDto, ScrapingTaskResponseDto, NotifyNotionDto } from './dto'
+import { CreateScrapingTaskDto, NotifyNotionDto } from './dto'
 
 @Controller('v1/scraping')
 export class ScrapingController {
-  private readonly logger = new Logger(ScrapingController.name);
+  private readonly logger = new Logger(ScrapingController.name)
 
   constructor(private readonly scrapingService: ScrapingService) {}
 
-   /**
-    * Crear una nueva tarea de scraping
-    * @param dto - URL y parámetros opcionales de scraping
-    * @returns requestId para rastrear la tarea
-    */
-   @Post('tasks')
-   @HttpCode(HttpStatus.ACCEPTED)
-   async createTask(@Body() dto: CreateScrapingTaskDto): Promise<ScrapingTaskResponseDto> {
-     this.logger.log(`Received scraping request for URL: ${dto.url}`);
+  // ─────────────── Tasks ───────────────
 
-     if (!dto.url) {
-       throw new BadRequestException('URL is required');
-     }
+  /**
+   * Create a scraping task. Fire-and-forget — returns 202 with `jobId`.
+   * Subscribe to SSE topic `scraping:<jobId>` (GET /api/v1/events?topics=...)
+   * to receive completed/failed events.
+   */
+  @Post('tasks')
+  @HttpCode(HttpStatus.ACCEPTED)
+  createTask(@Body() dto: CreateScrapingTaskDto) {
+    this.logger.log(`Scraping task requested: ${dto.url} [${dto.strategy}]`)
+    return this.scrapingService.createTask(dto)
+  }
 
-     try {
-       const result = await this.scrapingService.createScrapingTask(dto);
-       return result;
-     } catch (error) {
-       this.logger.error(`Failed to create scraping task: ${error}`);
-       throw error;
-     }
-   }
+  @Get('tasks')
+  list(@Query('limit') limit?: string, @Query('userId') userId?: string) {
+    return this.scrapingService.list(limit ? parseInt(limit, 10) : undefined, userId)
+  }
 
-   /**
-    * Notify Gateway about scraped data from Scraping Service
-    * 
-    * This endpoint receives cleaned data from the Scraping Service
-    * and publishes it to Notion via RabbitMQ.
-    * 
-    * Flow:
-    * 1. Scraping Service sends cleaned data
-    * 2. Gateway publishes to Notion service
-    * 3. Gateway returns 202 ACCEPTED immediately (async)
-    * 4. When Notion responds, Gateway sends WhatsApp notification
-    * 
-    * @param dto - NotifyNotionDto with userId, title, url, and cleaned data
-    * @returns { requestId, message, timestamp }
-    */
-   @Post('notify-notion')
-   @HttpCode(HttpStatus.ACCEPTED)
-   async notifyNotion(@Body() dto: NotifyNotionDto): Promise<{ requestId: string; message: string; timestamp: string }> {
-     this.logger.log(`📨 Received notify-notion request from Scraping Service`)
-     this.logger.log(`   - userId: ${dto.userId}`)
-     this.logger.log(`   - title: ${dto.title}`)
-     this.logger.log(`   - url: ${dto.url}`)
+  @Get('tasks/:id')
+  get(@Param('id') id: string) {
+    return this.scrapingService.get(id)
+  }
 
-     if (!dto.userId || !dto.title || !dto.data) {
-       throw new BadRequestException('userId, title, and data are required')
-     }
+  @Delete('tasks/:id')
+  @HttpCode(HttpStatus.ACCEPTED)
+  remove(@Param('id') id: string) {
+    return this.scrapingService.remove(id)
+  }
 
-     try {
-       const result = await this.scrapingService.notifyNotion(dto)
-       return result
-     } catch (error) {
-       this.logger.error(`Failed to notify Notion: ${error}`)
-       throw error
-     }
-   }
+  /**
+   * Trigger cleanup of expired jobs in the scraping DB. Intended to be
+   * invoked periodically by the scheduler (cron task pointing at this URL,
+   * or directly via channels.scraping.cleanup-expired).
+   */
+  @Post('cleanup-expired')
+  @HttpCode(HttpStatus.OK)
+  cleanupExpired() {
+    return this.scrapingService.cleanupExpired()
+  }
+
+  // ─────────────── Legacy ───────────────
+  /** Kept for backwards-compat. Internal — used by the old scraping flow. */
+  @Post('notify-notion')
+  @HttpCode(HttpStatus.ACCEPTED)
+  notifyNotion(@Body() dto: NotifyNotionDto) {
+    if (!dto.userId || !dto.title || !dto.data) {
+      throw new BadRequestException('userId, title, and data are required')
+    }
+    return this.scrapingService.notifyNotion(dto)
+  }
 }

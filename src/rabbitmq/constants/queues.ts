@@ -110,7 +110,15 @@ export const ROUTING_KEYS = {
 
    // Scraping Service - Web scraping tasks
    SCRAPING_TASK: 'channels.scraping.task',
+   SCRAPING_LIST: 'channels.scraping.list',
+   SCRAPING_GET: 'channels.scraping.get',
+   SCRAPING_DELETE: 'channels.scraping.delete',
+   SCRAPING_CLEANUP_EXPIRED: 'channels.scraping.cleanup-expired',
    SCRAPING_RESPONSE: 'channels.scraping.response',
+   SCRAPING_EVENT_QUEUED: 'channels.scraping.events.queued',
+   SCRAPING_EVENT_STARTED: 'channels.scraping.events.started',
+   SCRAPING_EVENT_COMPLETED: 'channels.scraping.events.completed',
+   SCRAPING_EVENT_FAILED: 'channels.scraping.events.failed',
    SCRAPPING_NOTION_RESPONSE: 'channels.scrapping.notion-response',
 
    // Email Service - Transactional email (Resend / SMTP via adapter)
@@ -245,7 +253,8 @@ export const QUEUES = {
 
    // Scraping Service Queues
    SCRAPING_TASK: 'scraping.task',
-   SCRAPING_RESPONSE: 'scraping.response',
+   SCRAPING_RESPONSES: 'gateway.scraping.responses',
+   SCRAPING_EVENTS: 'gateway.scraping.events',
    SCRAPPING_NOTION_RESPONSE: 'scrapping.notion-response',
 
    // Email Service Queues
