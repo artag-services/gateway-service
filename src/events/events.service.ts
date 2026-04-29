@@ -51,7 +51,14 @@ export class EventsService implements OnModuleInit {
       async (msg) => this.routeSchedulerEvent(msg),
     )
 
-    this.logger.log('SSE bus subscribed — scraping, email, scheduler events')
+    // Subscribe to agent events (chat lifecycle + streaming text deltas)
+    await this.rabbitmq.subscribe(
+      'gateway.sse.agent',
+      'channels.agent.events.#',
+      async (msg) => this.routeAgentEvent(msg),
+    )
+
+    this.logger.log('SSE bus subscribed — scraping, email, scheduler, agent events')
   }
 
   /**
@@ -141,6 +148,21 @@ export class EventsService implements OnModuleInit {
     const taskId = payload.taskId as string | undefined
     if (!taskId) return
     this.dispatch('scheduler:task-fired', `scheduler:${taskId}`, payload)
+  }
+
+  private routeAgentEvent(payload: Record<string, unknown>): void {
+    const conversationId = payload.conversationId as string | undefined
+    if (!conversationId) return
+    // Derive event name from the routing key heuristically based on payload shape
+    let eventName = 'agent:event'
+    if ('finalText' in payload) eventName = 'agent:message-completed'
+    else if ('delta' in payload) eventName = 'agent:text-delta'
+    else if ('toolName' in payload && 'output' in payload) eventName = 'agent:tool-use-end'
+    else if ('toolName' in payload) eventName = 'agent:tool-use-start'
+    else if ('error' in payload) eventName = 'agent:error'
+    else eventName = 'agent:message-started'
+
+    this.dispatch(eventName, `agent:${conversationId}`, payload)
   }
 
   private scrapingEventNameFromPayload(payload: Record<string, unknown>): string {

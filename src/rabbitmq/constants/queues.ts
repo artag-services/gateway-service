@@ -121,6 +121,21 @@ export const ROUTING_KEYS = {
    SCRAPING_EVENT_FAILED: 'channels.scraping.events.failed',
    SCRAPPING_NOTION_RESPONSE: 'channels.scrapping.notion-response',
 
+   // Agent Service - AI orchestrator (vendor-neutral, tool use)
+   AGENT_CHAT: 'channels.agent.chat',
+   AGENT_LIST_CONVERSATIONS: 'channels.agent.conversations.list',
+   AGENT_GET_CONVERSATION: 'channels.agent.conversations.get',
+   AGENT_DELETE_CONVERSATION: 'channels.agent.conversations.delete',
+   AGENT_LIST_MEMORIES: 'channels.agent.memories.list',
+   AGENT_DELETE_MEMORY: 'channels.agent.memories.delete',
+   AGENT_RESPONSE: 'channels.agent.response',
+   AGENT_EVENT_MESSAGE_STARTED: 'channels.agent.events.message-started',
+   AGENT_EVENT_TEXT_DELTA: 'channels.agent.events.text-delta',
+   AGENT_EVENT_TOOL_USE_START: 'channels.agent.events.tool-use-start',
+   AGENT_EVENT_TOOL_USE_END: 'channels.agent.events.tool-use-end',
+   AGENT_EVENT_MESSAGE_COMPLETED: 'channels.agent.events.message-completed',
+   AGENT_EVENT_ERROR: 'channels.agent.events.error',
+
    // Email Service - Transactional email (Resend / SMTP via adapter)
    EMAIL_SEND: 'channels.email.send',
    EMAIL_GET: 'channels.email.get',
@@ -256,6 +271,9 @@ export const QUEUES = {
    SCRAPING_RESPONSES: 'gateway.scraping.responses',
    SCRAPING_EVENTS: 'gateway.scraping.events',
    SCRAPPING_NOTION_RESPONSE: 'scrapping.notion-response',
+
+   // Agent Service Queues
+   AGENT_RESPONSES: 'gateway.agent.responses',
 
    // Email Service Queues
    EMAIL_SEND: 'email.send',
