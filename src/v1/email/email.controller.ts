@@ -12,18 +12,41 @@ import { SendEmailDto } from './dto/send-email.dto';
 export class EmailController {
   constructor(private readonly emails: EmailService) {}
 
+  // ── Outbound emails ──
   @Get()
   list(@Query('limit') limit?: string) {
     return this.emails.list(limit ? parseInt(limit, 10) : undefined);
   }
 
-  @Get(':id')
-  get(@Param('id') id: string) {
-    return this.emails.get(id);
-  }
-
   @Post()
   send(@Body() dto: SendEmailDto) {
     return this.emails.send(dto);
+  }
+
+  // ── Multi-domain config (frontend dropdown) ──
+  @Get('domains')
+  listDomains() {
+    return this.emails.listDomains();
+  }
+
+  // ── Inbound emails ──
+  @Get('inbound')
+  listInbound(@Query('domain') domain?: string, @Query('limit') limit?: string) {
+    return this.emails.listInbound(domain, limit ? parseInt(limit, 10) : undefined);
+  }
+
+  @Get('inbound/:id')
+  getInbound(@Param('id') id: string) {
+    return this.emails.getInbound(id);
+  }
+
+  @Post('inbound/cleanup-expired')
+  cleanupInbound() {
+    return this.emails.cleanupInbound();
+  }
+
+  @Get(':id')
+  get(@Param('id') id: string) {
+    return this.emails.get(id);
   }
 }

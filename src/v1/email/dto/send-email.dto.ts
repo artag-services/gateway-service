@@ -30,6 +30,11 @@ export class SendEmailDto {
   @IsOptional()
   from?: string;
 
+  /** Pick a configured domain by name; service uses its defaultFrom. */
+  @IsString()
+  @IsOptional()
+  fromDomain?: string;
+
   @IsString()
   @IsOptional()
   @IsEmail()

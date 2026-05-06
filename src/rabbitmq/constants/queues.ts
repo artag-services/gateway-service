@@ -140,8 +140,13 @@ export const ROUTING_KEYS = {
    EMAIL_SEND: 'channels.email.send',
    EMAIL_GET: 'channels.email.get',
    EMAIL_LIST: 'channels.email.list',
+   EMAIL_LIST_DOMAINS: 'channels.email.domains.list',
+   EMAIL_LIST_INBOUND: 'channels.email.inbound.list',
+   EMAIL_GET_INBOUND: 'channels.email.inbound.get',
+   EMAIL_CLEANUP_INBOUND: 'channels.email.inbound.cleanup-expired',
    EMAIL_RESPONSE: 'channels.email.response',
    EMAIL_WEBHOOK_RESEND: 'channels.email.webhook.resend',
+   EMAIL_INBOUND_RECEIVED: 'channels.email.inbound.received',
    EMAIL_EVENT_SENT: 'channels.email.events.sent',
    EMAIL_EVENT_DELIVERED: 'channels.email.events.delivered',
    EMAIL_EVENT_BOUNCED: 'channels.email.events.bounced',
@@ -149,6 +154,7 @@ export const ROUTING_KEYS = {
    EMAIL_EVENT_OPENED: 'channels.email.events.opened',
    EMAIL_EVENT_CLICKED: 'channels.email.events.clicked',
    EMAIL_EVENT_FAILED: 'channels.email.events.failed',
+   EMAIL_EVENT_INBOUND_RECEIVED: 'channels.email.events.inbound-received',
 
    // Scheduler Service - Scheduled tasks (all RPC over RabbitMQ — no direct HTTP)
    SCHEDULER_CREATE: 'channels.scheduler.create',
