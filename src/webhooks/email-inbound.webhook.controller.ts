@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createHmac, timingSafeEqual } from 'crypto'
+import { simpleParser } from 'mailparser'
 
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service'
 import { ROUTING_KEYS } from '../rabbitmq/constants/queues'
@@ -27,6 +28,9 @@ interface InboundEmailBody {
   htmlBody?: string
   text?: string
   html?: string
+  /** Raw RFC 5322 message — when present, parsed server-side via mailparser */
+  rawBody?: string
+  rawHeaders?: Record<string, unknown>
   headers?: Record<string, unknown>
   attachments?: Array<{ name?: string; contentType?: string; size?: number }>
   metadata?: Record<string, unknown>
@@ -94,22 +98,61 @@ export class EmailInboundWebhookController {
       throw new UnauthorizedException('Missing to/from in inbound payload')
     }
 
+    // If the worker sent rawBody (RFC 5322), parse server-side. This is the
+    // simple-worker path — no postal-mime / npm deps in the worker.
+    let parsed: {
+      fromName?: string
+      subject?: string
+      textBody?: string
+      htmlBody?: string
+      headers?: Record<string, unknown>
+      attachments?: Array<{ name?: string; contentType?: string; size?: number }>
+    } = {}
+
+    if (body.rawBody) {
+      try {
+        const mail = await simpleParser(body.rawBody)
+        const fromValue = (mail.from as { value?: Array<{ name?: string }> } | undefined)?.value?.[0]
+        parsed = {
+          fromName: fromValue?.name,
+          subject: mail.subject ?? undefined,
+          textBody: mail.text ?? undefined,
+          htmlBody: typeof mail.html === 'string' ? mail.html : undefined,
+          headers: body.rawHeaders ?? this.headersToObject(mail.headers as Map<string, unknown>),
+          attachments: (mail.attachments ?? []).map((a) => ({
+            name: a.filename,
+            contentType: a.contentType,
+            size: a.size,
+          })),
+        }
+      } catch (err) {
+        this.logger.warn(`mailparser failed: ${(err as Error).message} — falling back to raw fields`)
+      }
+    }
+
     const payload = {
       domain,
       toAddress,
       toAlias: body.toAlias ?? toAddress.split('@')[0],
       fromAddress,
-      fromName: body.fromName,
-      subject: body.subject,
-      textBody: body.textBody ?? body.text,
-      htmlBody: body.htmlBody ?? body.html,
-      headers: body.headers,
-      attachments: body.attachments,
+      fromName: body.fromName ?? parsed.fromName,
+      subject: body.subject ?? parsed.subject,
+      textBody: body.textBody ?? body.text ?? parsed.textBody,
+      htmlBody: body.htmlBody ?? body.html ?? parsed.htmlBody,
+      headers: body.headers ?? parsed.headers,
+      attachments: body.attachments ?? parsed.attachments,
       metadata: body.metadata,
     }
 
     this.logger.log(`📥 Inbound webhook: ${fromAddress} → ${toAddress} (${domain})`)
     this.rabbitmq.publish(ROUTING_KEYS.EMAIL_INBOUND_RECEIVED, payload)
     return { received: true }
+  }
+
+  private headersToObject(headers: Map<string, unknown> | undefined): Record<string, unknown> {
+    if (!headers) return {}
+    const obj: Record<string, unknown> = {}
+    for (const [k, v] of headers.entries()) obj[k] = v
+    return obj
   }
 }
