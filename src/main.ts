@@ -9,6 +9,28 @@ import * as express from 'express';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // CORS — must be enabled BEFORE setting up routes so the preflight OPTIONS
+  // request gets a proper 204 response with the right headers. Allowed origins
+  // come from CORS_ALLOWED_ORIGINS env (comma-separated). If unset, falls back
+  // to allow-all (`*`) — convenient for dev, NOT for prod.
+  //
+  // Set CORS_ALLOWED_ORIGINS in your .env, e.g.:
+  //   CORS_ALLOWED_ORIGINS=http://localhost:3000,http://192.168.80.22:3000,https://app.tudominio.com
+  const corsOriginsEnv = process.env.CORS_ALLOWED_ORIGINS?.trim();
+  const allowedOrigins = corsOriginsEnv
+    ? corsOriginsEnv.split(',').map((o) => o.trim()).filter(Boolean)
+    : null;
+  app.enableCors({
+    origin: allowedOrigins ?? true, // `true` reflects the request origin
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    maxAge: 600, // cache preflight 10 min
+  });
+  console.log(
+    `CORS enabled — origins: ${allowedOrigins ? allowedOrigins.join(', ') : '* (any)'}`,
+  );
+
   // Prefijo global de API
   app.setGlobalPrefix('api');
 
