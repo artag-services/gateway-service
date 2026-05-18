@@ -57,6 +57,19 @@ export class QueryController {
     )
   }
 
+  @Get('users/:userId/emails')
+  async getUserEmails(
+    @Param('userId') userId: string,
+    @Query('direction') direction?: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.sync.get(
+      `/internal/query/users/${encodeURIComponent(userId)}/emails`,
+      { direction, limit, cursor },
+    )
+  }
+
   // ── Conversations ────────────────────────────────────────────────────
 
   @Get('conversations')
@@ -80,6 +93,32 @@ export class QueryController {
     return this.sync.get(
       `/internal/query/conversations/${encodeURIComponent(id)}/messages`,
       { limit, cursor },
+    )
+  }
+
+  // ── Emails ───────────────────────────────────────────────────────────
+
+  @Get('emails')
+  async listEmails(
+    @Query('direction') direction?: string,
+    @Query('domain') domain?: string,
+    @Query('status') status?: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.sync.get('/internal/query/emails', {
+      direction,
+      domain,
+      status,
+      limit,
+      cursor,
+    })
+  }
+
+  @Get('emails/:id')
+  async getEmail(@Param('id') id: string) {
+    return this.passThroughNotFound(() =>
+      this.sync.get(`/internal/query/emails/${encodeURIComponent(id)}`),
     )
   }
 
