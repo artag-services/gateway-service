@@ -36,12 +36,13 @@ export class QueryController {
   @Get('users/:userId/conversations')
   async getUserConversations(
     @Param('userId') userId: string,
+    @Query('channel') channel?: string,
     @Query('limit') limit?: string,
     @Query('cursor') cursor?: string,
   ) {
     return this.sync.get(
       `/internal/query/users/${encodeURIComponent(userId)}/conversations`,
-      { limit, cursor },
+      { channel, limit, cursor },
     )
   }
 
@@ -73,8 +74,12 @@ export class QueryController {
   // ── Conversations ────────────────────────────────────────────────────
 
   @Get('conversations')
-  async listConversations(@Query('limit') limit?: string, @Query('cursor') cursor?: string) {
-    return this.sync.get('/internal/query/conversations', { limit, cursor })
+  async listConversations(
+    @Query('channel') channel?: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.sync.get('/internal/query/conversations', { channel, limit, cursor })
   }
 
   @Get('conversations/:id')
@@ -93,6 +98,24 @@ export class QueryController {
     return this.sync.get(
       `/internal/query/conversations/${encodeURIComponent(id)}/messages`,
       { limit, cursor },
+    )
+  }
+
+  // ── Scraping tasks ───────────────────────────────────────────────────
+
+  @Get('scraping-tasks')
+  async listScrapingTasks(
+    @Query('status') status?: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.sync.get('/internal/query/scraping-tasks', { status, limit, cursor })
+  }
+
+  @Get('scraping-tasks/:id')
+  async getScrapingTask(@Param('id') id: string) {
+    return this.passThroughNotFound(() =>
+      this.sync.get(`/internal/query/scraping-tasks/${encodeURIComponent(id)}`),
     )
   }
 

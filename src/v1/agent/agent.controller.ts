@@ -13,6 +13,20 @@ import {
 import { AgentService } from './agent.service'
 import { ChatDto } from './dto/chat.dto'
 
+/**
+ * Agent endpoints.
+ *
+ * Listing conversations is gone from here — use the unified read model
+ * instead: `GET /v1/query/conversations?channel=agent` or
+ * `GET /v1/query/users/:userId/conversations?channel=agent`.
+ *
+ * `GET conversations/:id` is kept because the agent-detail view returns
+ * messages WITH tool_use / tool_result blocks, which the cross-channel
+ * UnifiedMessage projection deliberately strips out.
+ *
+ * Memory listings stay here because memories are agent-internal state
+ * (preferences, facts) that don't belong in the cross-channel read model.
+ */
 @Controller('v1/agent')
 export class AgentController {
   constructor(private readonly agent: AgentService) {}
@@ -28,11 +42,11 @@ export class AgentController {
     return this.agent.chat(dto)
   }
 
-  @Get('conversations')
-  listConversations(@Query('userId') userId?: string, @Query('limit') limit?: string) {
-    return this.agent.listConversations(userId, limit ? parseInt(limit, 10) : undefined)
-  }
-
+  /**
+   * Full conversation detail INCLUDING tool_use / tool_result blocks —
+   * used by the agent-detail UI. For the cross-channel summary view,
+   * use `GET /v1/query/conversations/:id` instead.
+   */
   @Get('conversations/:id')
   getConversation(@Param('id') id: string) {
     return this.agent.getConversation(id)

@@ -1,21 +1,26 @@
 import {
   Controller,
-  Get,
   Post,
   Patch,
   Delete,
   Body,
   Param,
-  Query,
-  UseGuards,
   Logger,
 } from '@nestjs/common';
 import { ConvStatus } from '@prisma/client';
 import { ConversationsService } from './conversations.service';
 
 /**
- * Gateway Conversations Endpoints
- * Manages conversation lifecycle: create, list, update, delete
+ * Conversation lifecycle endpoints. Writes only — list/get/messages have
+ * moved to the unified read model:
+ *
+ *   GET /v1/query/conversations              — list (filter ?channel, ?status)
+ *   GET /v1/query/conversations/:id          — single (cross-channel summary)
+ *   GET /v1/query/conversations/:id/messages — messages
+ *   GET /v1/query/users/:userId/conversations
+ *
+ * For the agent's deeper view (messages WITH tool blocks), use
+ * `GET /v1/agent/conversations/:id` instead.
  */
 @Controller('api/v1/conversations')
 export class ConversationsController {
@@ -23,63 +28,6 @@ export class ConversationsController {
 
   constructor(private conversationsService: ConversationsService) {}
 
-  /**
-   * GET /conversations
-   * List all conversations (paginated)
-   * Query: channel?, status?, limit=50, offset=0
-   */
-  @Get()
-  async listConversations(
-    @Query('channel') channel?: string,
-    @Query('status') status?: string,
-    @Query('limit') limit = '50',
-    @Query('offset') offset = '0',
-  ) {
-    this.logger.debug(
-      `Listing conversations: channel=${channel}, status=${status}`,
-    );
-
-    return this.conversationsService.listConversations({
-      channel,
-      status,
-      limit: parseInt(limit),
-      offset: parseInt(offset),
-    });
-  }
-
-  /**
-   * GET /conversations/:conversationId
-   * Get single conversation details
-   */
-  @Get(':conversationId')
-  async getConversation(@Param('conversationId') conversationId: string) {
-    this.logger.debug(`Getting conversation: ${conversationId}`);
-    return this.conversationsService.getConversationById(conversationId);
-  }
-
-  /**
-   * GET /conversations/:conversationId/messages
-   * Get messages in conversation (queries service-specific DB)
-   * Query: limit=50, offset=0
-   */
-  @Get(':conversationId/messages')
-  async getConversationMessages(
-    @Param('conversationId') conversationId: string,
-    @Query('limit') limit = '50',
-    @Query('offset') offset = '0',
-  ) {
-    this.logger.debug(`Getting messages for conversation: ${conversationId}`);
-    return this.conversationsService.getConversationMessages(conversationId, {
-      limit: parseInt(limit),
-      offset: parseInt(offset),
-    });
-  }
-
-  /**
-   * POST /conversations
-   * Manually create a new conversation
-   * Body: {channel: string, topic?: string, aiEnabled?: boolean}
-   */
   @Post()
   async createConversation(
     @Body()
@@ -94,11 +42,8 @@ export class ConversationsController {
     return this.conversationsService.createConversation(data);
   }
 
-  /**
-   * PATCH /conversations/:conversationId
-   * Update conversation: aiEnabled, agentAssigned, status
-   * Body: {aiEnabled?: boolean, agentAssigned?: string, status?: string}
-   */
+  /** Update aiEnabled / agentAssigned / status — fans out to the producer
+   *  service via RabbitMQ; the producer also re-emits the CQRS snapshot. */
   @Patch(':conversationId')
   async updateConversation(
     @Param('conversationId') conversationId: string,
@@ -113,14 +58,9 @@ export class ConversationsController {
     return this.conversationsService.updateConversation(conversationId, updates);
   }
 
-  /**
-   * DELETE /conversations/:conversationId
-   * Archive conversation (soft delete)
-   */
+  /** Soft-archive. */
   @Delete(':conversationId')
-  async archiveConversation(
-    @Param('conversationId') conversationId: string,
-  ) {
+  async archiveConversation(@Param('conversationId') conversationId: string) {
     this.logger.log(`Archiving conversation: ${conversationId}`);
     return this.conversationsService.archiveConversation(conversationId);
   }

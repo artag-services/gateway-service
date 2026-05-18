@@ -3,24 +3,29 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   HttpCode,
   HttpStatus,
   Logger,
   Param,
   Post,
-  Query,
 } from '@nestjs/common'
 import { ScrapingService } from './scraping.service'
 import { CreateScrapingTaskDto, NotifyNotionDto } from './dto'
 
+/**
+ * Scraping API — writes only. Reads moved to the unified read model:
+ *
+ *   GET /v1/query/scraping-tasks            — list (filter ?status)
+ *   GET /v1/query/scraping-tasks/:id        — single task summary
+ *   GET /v1/query/users/:userId/scraping-tasks
+ *
+ * For real-time progress, subscribe to SSE on `scraping:<jobId>`.
+ */
 @Controller('v1/scraping')
 export class ScrapingController {
   private readonly logger = new Logger(ScrapingController.name)
 
   constructor(private readonly scrapingService: ScrapingService) {}
-
-  // ─────────────── Tasks ───────────────
 
   /**
    * Create a scraping task. Fire-and-forget — returns 202 with `jobId`.
@@ -32,16 +37,6 @@ export class ScrapingController {
   createTask(@Body() dto: CreateScrapingTaskDto) {
     this.logger.log(`Scraping task requested: ${dto.url} [${dto.strategy}]`)
     return this.scrapingService.createTask(dto)
-  }
-
-  @Get('tasks')
-  list(@Query('limit') limit?: string, @Query('userId') userId?: string) {
-    return this.scrapingService.list(limit ? parseInt(limit, 10) : undefined, userId)
-  }
-
-  @Get('tasks/:id')
-  get(@Param('id') id: string) {
-    return this.scrapingService.get(id)
   }
 
   @Delete('tasks/:id')
@@ -61,8 +56,7 @@ export class ScrapingController {
     return this.scrapingService.cleanupExpired()
   }
 
-  // ─────────────── Legacy ───────────────
-  /** Kept for backwards-compat. Internal — used by the old scraping flow. */
+  // Legacy — used by the old scraping flow; kept for back-compat.
   @Post('notify-notion')
   @HttpCode(HttpStatus.ACCEPTED)
   notifyNotion(@Body() dto: NotifyNotionDto) {
