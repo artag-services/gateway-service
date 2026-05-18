@@ -10,6 +10,7 @@ import { ConversationsModule } from './v1/conversations/conversations.module';
 import { SchedulerModule } from './v1/scheduler/scheduler.module';
 import { EmailModule } from './v1/email/email.module';
 import { AgentModule as V1AgentModule } from './v1/agent/agent.module';
+import { QueryModule } from './v1/query/query.module';
 import { EventsModule } from './events/events.module';
 import { WebhookModule } from './webhooks/webhook.module';
 // import { AuthModule } from './auth/auth.module'; // TODO: activar cuando implementemos auth
@@ -34,6 +35,7 @@ import { WebhookModule } from './webhooks/webhook.module';
     SchedulerModule,
     EmailModule,
     V1AgentModule,
+    QueryModule,
     EventsModule,
     WebhookModule,
 
