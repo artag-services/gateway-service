@@ -22,7 +22,7 @@ import { ConversationsService } from './conversations.service';
  * For the agent's deeper view (messages WITH tool blocks), use
  * `GET /v1/agent/conversations/:id` instead.
  */
-@Controller('api/v1/conversations')
+@Controller('v1/conversations')
 export class ConversationsController {
   private readonly logger = new Logger(ConversationsController.name);
 
