@@ -131,7 +131,21 @@ export class ConversationsService {
   }
 
   /**
-   * Create new conversation manually
+   * Create a conversation manually. Useful for admin / testing flows that
+   * need a conversation to exist BEFORE any inbound message arrives.
+   *
+   * Two things happen, in order:
+   *   1. Row in the gateway's local Postgres (audit / fallback).
+   *   2. CQRS `data.<channel>.conversation.created` event so it lands in
+   *      the Mongo read model — without this step, the new conversation
+   *      would never show up in `/v1/query/conversations`.
+   *
+   * NOTE: this conversation is NOT owned by the whatsapp / instagram
+   * producer service. If the same channelUserId later sends a real
+   * incoming message, that producer will create its OWN conversation
+   * row with a different UUID. To avoid duplicates in the read model,
+   * prefer letting conversations be created automatically by incoming
+   * messages. Use this endpoint for manual seeds / tests.
    */
   async createConversation(data: {
     channel: string;
@@ -160,15 +174,37 @@ export class ConversationsService {
         `✅ Conversation created manually: ${conversation.id}`,
       );
 
-      // Publish event so services can react
+      // 1) Legacy in-channel event — back-compat with consumers listening
+      //    on `channels.conversation.created`.
       await this.rabbitmq.publish(ROUTING_KEYS.CONVERSATION_CREATED, {
         conversationId: conversation.id,
         channel: conversation.channel,
         channelUserId: conversation.channelUserId,
         topic: conversation.topic,
         aiEnabled: conversation.aiEnabled,
-        createdAt: new Date().toISOString(),
+        createdAt: conversation.createdAt.toISOString(),
       } as unknown as Record<string, unknown>);
+
+      // 2) CQRS data event — needed for the read model to project this
+      //    conversation. Without this, GET /v1/query/conversations won't
+      //    return it. Routing key is channel-scoped so sync's
+      //    ConversationProjector picks the right channel string.
+      const dataRoutingKey = `data.${conversation.channel}.conversation.created`;
+      await this.rabbitmq.publish(dataRoutingKey, {
+        conversationId: conversation.id,
+        channel: conversation.channel,
+        channelUserId: conversation.channelUserId,
+        topic: conversation.topic,
+        userId: null, // manual creation has no user-link yet
+        status: conversation.status,
+        aiEnabled: conversation.aiEnabled,
+        agentAssigned: null,
+        createdAt: conversation.createdAt.toISOString(),
+      } as unknown as Record<string, unknown>);
+
+      this.logger.debug(
+        `Published CQRS event ${dataRoutingKey} for conversation ${conversation.id}`,
+      );
 
       return {
         conversationId: conversation.id,
